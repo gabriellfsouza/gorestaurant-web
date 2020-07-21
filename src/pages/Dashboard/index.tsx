@@ -44,16 +44,42 @@ const Dashboard: React.FC = () => {
       });
 
       setFoods(prev => [...prev, response.data]);
+      setModalOpen(false);
     } catch (err) {
       console.log(err);
     }
   }
 
+  async function handleChangeAvailability(
+    food: IFoodPlate,
+    available: boolean,
+  ): Promise<void> {
+    const response = await api.put<IFoodPlate>(`foods/${food.id}`, {
+      ...food,
+      available,
+    });
+    setFoods(prev => {
+      const idx = prev.findIndex(p => p.id === food.id);
+      const before = prev.slice(0, idx);
+      const after = prev.slice(idx + 1, prev.length);
+      return [...before, response.data, ...after];
+    });
+  }
+
   async function handleUpdateFood(
     food: Omit<IFoodPlate, 'id' | 'available'>,
   ): Promise<void> {
-    await api.put(`food/${editingFood.id}`, food);
-    setEditingFood(prev => ({ ...prev, food }));
+    const response = await api.put<IFoodPlate>(`foods/${editingFood.id}`, {
+      ...editingFood,
+      ...food,
+    });
+    setEditingFood(prev => ({ ...prev, ...response.data }));
+    setFoods(prev => {
+      const idx = prev.findIndex(p => p.id === editingFood.id);
+      const before = prev.slice(0, idx);
+      const after = prev.slice(idx + 1, prev.length);
+      return [...before, response.data, ...after];
+    });
   }
 
   async function handleDeleteFood(id: number): Promise<void> {
@@ -71,6 +97,7 @@ const Dashboard: React.FC = () => {
 
   function handleEditFood(food: IFoodPlate): void {
     setEditingFood(food);
+    toggleEditModal();
   }
 
   return (
@@ -96,6 +123,7 @@ const Dashboard: React.FC = () => {
               food={food}
               handleDelete={handleDeleteFood}
               handleEditFood={handleEditFood}
+              onChangeAvailability={handleChangeAvailability}
             />
           ))}
       </FoodsContainer>

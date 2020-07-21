@@ -17,25 +17,31 @@ interface IProps {
   food: IFoodPlate;
   handleDelete: (id: number) => {};
   handleEditFood: (food: IFoodPlate) => void;
+  onChangeAvailability: (
+    food: IFoodPlate,
+    availability: boolean,
+  ) => Promise<void>;
 }
 
 const Food: React.FC<IProps> = ({
   food,
   handleDelete,
   handleEditFood,
+  onChangeAvailability,
 }: IProps) => {
   const [isAvailable, setIsAvailable] = useState(food.available);
 
   async function toggleAvailable(): Promise<void> {
-    // TODO UPDATE STATUS (available)
+    setIsAvailable(!isAvailable);
+    onChangeAvailability(food, !food.available);
   }
 
   function setEditingFood(): void {
-    // TODO - SET THE ID OF THE CURRENT ITEM TO THE EDITING FOOD AND OPEN MODAL
+    return handleEditFood(food);
   }
 
   return (
-    <Container available={isAvailable}>
+    <Container available={food.available}>
       <header>
         <img src={food.image} alt={food.name} />
       </header>
@@ -69,12 +75,13 @@ const Food: React.FC<IProps> = ({
 
         <div className="availability-container">
           <p>{isAvailable ? 'Disponível' : 'Indisponível'}</p>
+          {/* <p>{food.available ? 'Disponível' : 'Indisponível'}</p> */}
 
           <label htmlFor={`available-switch-${food.id}`} className="switch">
             <input
               id={`available-switch-${food.id}`}
               type="checkbox"
-              checked={isAvailable}
+              checked={food.available}
               onChange={toggleAvailable}
               data-testid={`change-status-food-${food.id}`}
             />
